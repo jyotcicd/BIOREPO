@@ -1,0 +1,59 @@
+name: snowflake-devops-demo
+ 
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'migrations_db1/**'
+      - 'migrations_db2/**'
+  workflow_dispatch:
+ 
+jobs:
+  deploy-snowflake-changes-db1:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+ 
+      - name: Use Python 3.8.x
+        uses: actions/setup-python@v2.2.1
+        with:
+          python-version: 3.8.x
+ 
+      - name: Run schemachange for Database 1
+        env:
+          SF_ACCOUNT: ${{ secrets.SF_ACCOUNT_DB1 }}
+          SF_USERNAME: ${{ secrets.SF_USERNAME_DB1 }}
+          SF_ROLE: ${{ secrets.SF_ROLE_DB1 }}
+          SF_WAREHOUSE: ${{ secrets.SF_WAREHOUSE_DB1 }}
+          SF_DATABASE: ${{ secrets.SF_DATABASE_DB1 }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SF_PASSWORD_DB1 }}
+        run: |
+          pip install schemachange
+          schemachange -f $GITHUB_WORKSPACE/migrations_db1 -a $SF_ACCOUNT -u $SF_USERNAME -r $SF_ROLE -w $SF_WAREHOUSE -d $SF_DATABASE -c $SF_DATABASE.SCHEMACHANGE.CHANGE_HISTORY --create-change-history-table
+ 
+  deploy-snowflake-changes-db2:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+ 
+      - name: Use Python 3.8.x
+        uses: actions/setup-python@v2.2.1
+        with:
+          python-version: 3.8.x
+ 
+      - name: Run schemachange for Database 2
+        env:
+          SF_ACCOUNT: ${{ secrets.SF_ACCOUNT_DB2 }}
+          SF_USERNAME: ${{ secrets.SF_USERNAME_DB2 }}
+          SF_ROLE: ${{ secrets.SF_ROLE_DB2 }}
+          SF_WAREHOUSE: ${{ secrets.SF_WAREHOUSE_DB2 }}
+          SF_DATABASE: ${{ secrets.SF_DATABASE_DB2 }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SF_PASSWORD_DB2 }}
+        run: |
+          pip install schemachange
+          schemachange -f $GITHUB_WORKSPACE/migrations_db2 -a $SF_ACCOUNT -u $SF_USERNAME -r $SF_ROLE -w $SF_WAREHOUSE -d $SF_DATABASE -c $SF_DATABASE.SCHEMACHANGE.CHANGE_HISTORY --create-change-history-table
